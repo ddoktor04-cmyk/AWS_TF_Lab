@@ -113,7 +113,28 @@ terraform output                  # всі адреси/ID
 
 ## Як перевірити (з реальними адресами)
 
-### 1. PRIMARY сайт (ALB, eu-north-1)
+> ⚠️ **Головна адреса сайту — `http://hwbarabash1.pp.ua`**, але вона працює
+> **лише після делегації NS-записів у панелі pp.ua** (див. блок вище).
+> Поки делегації немає, публічний DNS не знає про нашу Route53-зону і браузер/`curl`
+> на `hwbarabash1.pp.ua` даватиме помилку — тому нижче прямі URL (ALB/S3),
+> які працюють завжди, незалежно від делегації.
+>
+> Перевірити, чи делегація вже «прийшла»:
+> ```powershell
+> nslookup hwbarabash1.pp.ua   # без сервера — працює тільки після делегації
+> ```
+
+### 1. Сайт через домен (після делегації)
+
+```powershell
+curl.exe http://hwbarabash1.pp.ua
+# Очікується: HTTP 200, HTML з бейджем «PRIMARY» (бо healthy targets є)
+
+curl.exe -s http://hwbarabash1.pp.ua | Select-String "<h1>"
+# → <h1>Primary site</h1>
+```
+
+### 2. PRIMARY напряму до ALB (eu-north-1) — працює завжди
 
 ```powershell
 curl.exe http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com
@@ -123,14 +144,14 @@ curl.exe -s http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com | Sel
 # → <h1>Primary site</h1>
 ```
 
-### 2. SECONDARY сайт (S3 website, eu-west-1)
+### 3. SECONDARY напряму до S3 website (eu-west-1) — працює завжди
 
 ```powershell
 curl.exe http://hwbarabash1.pp.ua.s3-website-eu-west-1.amazonaws.com
 # Очікується: HTTP 200, HTML з бейджем «FALLBACK»
 ```
 
-### 3. DNS через NS-сервери зони
+### 4. DNS через NS-сервери зони
 
 До делегації в pp.ua запити робимо напряму до NS зони; після делегації
 `nslookup hwbarabash1.pp.ua` працюватиме без вказання сервера:
@@ -153,7 +174,7 @@ python -c "import dns.resolver; r=dns.resolver.Resolver(configure=False); r.name
 # 205.251.192.131 = ns-131.awsdns-16.com
 ```
 
-### 4. Статус Route53 health check
+### 5. Статус Route53 health check
 
 ```powershell
 # Поточний статус всіх чекерів (Success / Failure):
@@ -165,7 +186,7 @@ aws route53 get-health-check-last-failure-reason `
   --health-check-id 096755f8-691c-4c0f-b5d6-d850c0a049ba
 ```
 
-### 5. Target Group (ALB → EC2)
+### 6. Target Group (ALB → EC2)
 
 ```powershell
 aws elbv2 describe-target-health `
@@ -173,7 +194,7 @@ aws elbv2 describe-target-health `
 # Очікується: 2 таргети у стані "healthy"
 ```
 
-### 6. Тест failover (симуляція збою)
+### 7. Тест failover (симуляція збою)
 
 Сценарій: зупиняємо обидва EC2 → ALB без healthy targets віддає 503 →
 health check фіксує 3 невдачі (~90s) → DNS перемикається на S3.
@@ -200,7 +221,7 @@ curl.exe http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com   # «Pr
 **Тривалість перемикання**: `failure_threshold(3) × request_interval(30s) ≈ 90s`
 плюс TTL DNS-кешу (alias ≈ 60s). Реально — 1-3 хвилини.
 
-### 7. Очищення
+### 8. Очищення
 
 ```powershell
 terraform -chdir=environments\dev destroy -auto-approve
