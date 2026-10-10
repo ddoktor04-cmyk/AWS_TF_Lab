@@ -1,0 +1,23 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Кеш провайдерів (.lock.hcl комітимо — він фіксує версії)
+# .terraform.lock.hcl — НЕ ігноруємо
+
+# ОС / редактори
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

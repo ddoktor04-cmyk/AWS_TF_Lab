@@ -1,0 +1,98 @@
+#!/bin/bash
+set -euo pipefail
+
+# Встановлення nginx та публікація demo-сторінки PRIMARY
+yum install -y nginx
+
+cat > /usr/share/nginx/html/index.html <<'HTML'
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${page_title} — ${instance_label}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0f766e 0%, #115e59 50%, #134e4a 100%);
+      color: #f0fdfa;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 3rem 3.5rem;
+      max-width: 560px;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.45rem 1.2rem;
+      border-radius: 999px;
+      background: #14b8a6;
+      color: #042f2e;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    h1 { font-size: 2.4rem; margin-bottom: 0.75rem; }
+    p  { color: #99f6e4; line-height: 1.6; margin-bottom: 1.25rem; }
+    .meta {
+      font-family: 'Consolas', monospace;
+      font-size: 0.9rem;
+      color: #5eead4;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      padding-top: 1.25rem;
+    }
+    .meta span { color: #fbbf24; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="badge">&#9679; Primary</div>
+    <h1>${page_title}</h1>
+    <p>
+      Ви бачите цю сторінку, бо Route53 DNS failover
+      скерував запит на <strong>ALB в eu-central-1</strong>.
+      Це основний (PRIMARY) endpoint.
+    </p>
+    <div class="meta">
+      instance: <span>${instance_label}</span><br>
+      served by: nginx on Amazon Linux 2023
+    </div>
+  </div>
+</body>
+</html>
+HTML
+
+cat > /usr/share/nginx/html/50x.html <<'HTML'
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Помилка сервера</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #7f1d1d; color: #fef2f2;
+           display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .card { text-align: center; background: rgba(0,0,0,.35); padding: 2.5rem 3rem; border-radius: 16px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>5xx — помилка сервера</h1>
+    <p>Спробуйте оновити сторінку. Якщо не допоможе — Route53 перемкне вас на резерв.</p>
+  </div>
+</body>
+</html>
+HTML
+
+systemctl enable --now nginx

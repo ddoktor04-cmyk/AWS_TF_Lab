@@ -1,0 +1,15 @@
+# Скопіюйте файл у terraform.tfvars та заповніть реальними значеннями.
+# Файл terraform.tfvars доданий у .gitignore — не комітте секрети!
+
+aws_access_key = "AKIA...YOUR_ACCESS_KEY"
+aws_secret_key = "...YOUR_SECRET_KEY"
+
+aws_region_primary   = "eu-central-1"
+aws_region_secondary = "eu-west-1"
+
+# Домен = ім'я S3-бакета (для demo можна залишити .test — зона створюється в TF)
+domain_name = "failover-lab.test"
+
+environment  = "dev"
+project_name = "route53-dns-failover"
+instance_type = "t3.micro"

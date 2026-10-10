@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Сторінку не знайдено</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #0f172a 100%);
+      color: #e0e7ff;
+    }
+    .card {
+      background: rgba(15, 23, 42, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 3rem 3.5rem;
+      max-width: 520px;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+    }
+    .code {
+      font-size: 4.5rem;
+      font-weight: 800;
+      color: #a5b4fc;
+      line-height: 1;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 1.6rem; margin-bottom: 1rem; }
+    p  { color: #c7d2fe; line-height: 1.7; }
+    a { color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="code">404</div>
+    <h1>Сторінку не знайдено</h1>
+    <p>
+      Запитаний ресурс відсутній на резервному (S3) сайті.
+      Поверніться на <a href="/">головну</a>.
+    </p>
+  </div>
+</body>
+</html>
