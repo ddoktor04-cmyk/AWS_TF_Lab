@@ -13,7 +13,7 @@ Terraform-реалізація механізму **DNS failover** за допо
 ## Архітектура
 
 ```
-                   http://cmd521-failover-lab.test
+                   http://hwbarabash1.pp.ua
                               │
                      Route53 hosted zone
                      FAILOVER routing policy
@@ -34,15 +34,15 @@ Terraform-реалізація механізму **DNS failover** за допо
 
 | Ресурс | Значення |
 |---|---|
-| Домен / hosted zone | `cmd521-failover-lab.test` |
-| Hosted zone ID | `Z08732093J6OIM6EXGVDJ` |
-| NS-сервери зони | `ns-412.awsdns-51.com`, `ns-689.awsdns-22.net`, `ns-1353.awsdns-41.org`, `ns-1901.awsdns-45.co.uk` |
-| PRIMARY (ALB) | `http://dns-failover-alb-671914199.eu-north-1.elb.amazonaws.com` |
-| SECONDARY (S3 website) | `http://cmd521-failover-lab.test.s3-website-eu-west-1.amazonaws.com` |
-| Route53 health check ID | `baf98e4e-2fbc-4b22-a92d-c554c94759ef` |
-| EC2 instance IDs | `i-0ca19cf2367d1cc2a` (web-1), `i-0a6d8ed438f5c419a` (web-2) |
-| Target Group ARN | `arn:aws:elasticloadbalancing:eu-north-1:989346119941:targetgroup/dns-failover-tg/7ccfc69ab711aca9` |
-| S3 bucket | `cmd521-failover-lab.test` |
+| Домен / hosted zone | `hwbarabash1.pp.ua` |
+| Hosted zone ID | `Z09009853QYQ3YI0A3JS4` |
+| NS-сервери зони | `ns-131.awsdns-16.com`, `ns-551.awsdns-04.net`, `ns-1437.awsdns-51.org`, `ns-1564.awsdns-03.co.uk` |
+| PRIMARY (ALB) | `http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com` |
+| SECONDARY (S3 website) | `http://hwbarabash1.pp.ua.s3-website-eu-west-1.amazonaws.com` |
+| Route53 health check ID | `096755f8-691c-4c0f-b5d6-d850c0a049ba` |
+| EC2 instance IDs | `i-0cf7255a64a2c3856` (web-1), `i-03a58aab033f48dc2` (web-2) |
+| Target Group ARN | `arn:aws:elasticloadbalancing:eu-north-1:989346119941:targetgroup/dns-failover-tg/19369bdc70db9ad1` |
+| S3 bucket | `hwbarabash1.pp.ua` |
 
 > Після `terraform output` усі значення також доступні як outputs (див. таблицю нижче).
 
@@ -89,49 +89,58 @@ terraform output                  # всі адреси/ID
 
 | Output | Поточне значення |
 |---|---|
-| `app_url` | `http://cmd521-failover-lab.test` |
-| `primary_url` | `http://dns-failover-alb-671914199.eu-north-1.elb.amazonaws.com` |
-| `secondary_url` | `http://cmd521-failover-lab.test.s3-website-eu-west-1.amazonaws.com` |
-| `instance_ids` | `["i-0ca19cf2367d1cc2a", "i-0a6d8ed438f5c419a"]` |
-| `health_check_id` | `baf98e4e-2fbc-4b22-a92d-c554c94759ef` |
-| `hosted_zone_id` | `Z08732093J6OIM6EXGVDJ` |
-| `name_servers` | `["ns-1353.awsdns-41.org", "ns-1901.awsdns-45.co.uk", "ns-412.awsdns-51.com", "ns-689.awsdns-22.net"]` |
+| `app_url` | `http://hwbarabash1.pp.ua` |
+| `primary_url` | `http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com` |
+| `secondary_url` | `http://hwbarabash1.pp.ua.s3-website-eu-west-1.amazonaws.com` |
+| `instance_ids` | `["i-0cf7255a64a2c3856", "i-03a58aab033f48dc2"]` |
+| `health_check_id` | `096755f8-691c-4c0f-b5d6-d850c0a049ba` |
+| `hosted_zone_id` | `Z09009853QYQ3YI0A3JS4` |
+| `name_servers` | `["ns-131.awsdns-16.com", "ns-1437.awsdns-51.org", "ns-1564.awsdns-03.co.uk", "ns-551.awsdns-04.net"]` |
 
-> **Домен `.test`** — зарезервований TLD, не делегується в інтернет. Тому браузер
-> по `http://cmd521-failover-lab.test` не відкриється без hosts/делегації —
-> сайт перевіряємо за прямими URL (ALB/S3), а перемикання DNS — запитами
-> напряму до NS-серверів зони (див. нижче). Для реального домену змініть
-> `domain_name` у `terraform.tfvars` і делегуйте домен на `name_servers`.
+> **Делегація домену**: `hwbarabash1.pp.ua` — реальний домен. Щоб `http://hwbarabash1.pp.ua`
+> працював з інтернету, у панелі **pp.ua** для піддомену `hwbarabash1` створіть
+> NS-записи (делегацію) на ці 4 сервери:
+>
+> ```
+> hwbarabash1.pp.ua.   NS   ns-131.awsdns-16.com.
+> hwbarabash1.pp.ua.   NS   ns-551.awsdns-04.net.
+> hwbarabash1.pp.ua.   NS   ns-1437.awsdns-51.org.
+> hwbarabash1.pp.ua.   NS   ns-1564.awsdns-03.co.uk.
+> ```
+>
+> Після делегації (поширення DNS ~15-60 хв) сайт відкриється у браузері.
+> До делегації перевіряйте за прямими URL та NS-запитами (див. нижче).
 
 ## Як перевірити (з реальними адресами)
 
 ### 1. PRIMARY сайт (ALB, eu-north-1)
 
 ```powershell
-curl.exe http://dns-failover-alb-671914199.eu-north-1.elb.amazonaws.com
+curl.exe http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com
 # Очікується: HTTP 200, HTML з бейджем «PRIMARY», instance: web-1 або web-2
 
-curl.exe -s http://dns-failover-alb-671914199.eu-north-1.elb.amazonaws.com | Select-String "<h1>"
+curl.exe -s http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com | Select-String "<h1>"
 # → <h1>Primary site</h1>
 ```
 
 ### 2. SECONDARY сайт (S3 website, eu-west-1)
 
 ```powershell
-curl.exe http://cmd521-failover-lab.test.s3-website-eu-west-1.amazonaws.com
+curl.exe http://hwbarabash1.pp.ua.s3-website-eu-west-1.amazonaws.com
 # Очікується: HTTP 200, HTML з бейджем «FALLBACK»
 ```
 
 ### 3. DNS через NS-сервери зони
 
-Домен не делегований, тому запити робимо напряму до NS зони:
+До делегації в pp.ua запити робимо напряму до NS зони; після делегації
+`nslookup hwbarabash1.pp.ua` працюватиме без вказання сервера:
 
 ```powershell
 # Windows (nslookup) — має показати 2 IP ALB:
-nslookup cmd521-failover-lab.test ns-412.awsdns-51.com
+nslookup hwbarabash1.pp.ua ns-131.awsdns-16.com
 
 # PowerShell — той самий запит:
-Resolve-DnsName cmd521-failover-lab.test -Type A -Server ns-412.awsdns-51.com
+Resolve-DnsName hwbarabash1.pp.ua -Type A -Server ns-131.awsdns-16.com
 
 # Очікується (PRIMARY healthy): 2 IP ALB eu-north-1
 # Очікується (після failover):  IP S3 website endpoint
@@ -140,8 +149,8 @@ Resolve-DnsName cmd521-failover-lab.test -Type A -Server ns-412.awsdns-51.com
 Або через Python (потрібен `pip install dnspython`):
 
 ```powershell
-python -c "import dns.resolver; r=dns.resolver.Resolver(configure=False); r.nameservers=['205.251.193.156']; print([rr.to_text() for rr in r.resolve('cmd521-failover-lab.test','A')])"
-# 205.251.193.156 = ns-412.awsdns-51.com
+python -c "import dns.resolver; r=dns.resolver.Resolver(configure=False); r.nameservers=['205.251.192.131']; print([rr.to_text() for rr in r.resolve('hwbarabash1.pp.ua','A')])"
+# 205.251.192.131 = ns-131.awsdns-16.com
 ```
 
 ### 4. Статус Route53 health check
@@ -149,18 +158,18 @@ python -c "import dns.resolver; r=dns.resolver.Resolver(configure=False); r.name
 ```powershell
 # Поточний статус всіх чекерів (Success / Failure):
 aws route53 get-health-check-status `
-  --health-check-id baf98e4e-2fbc-4b22-a92d-c554c94759ef
+  --health-check-id 096755f8-691c-4c0f-b5d6-d850c0a049ba
 
 # Остання причина невдачі:
 aws route53 get-health-check-last-failure-reason `
-  --health-check-id baf98e4e-2fbc-4b22-a92d-c554c94759ef
+  --health-check-id 096755f8-691c-4c0f-b5d6-d850c0a049ba
 ```
 
 ### 5. Target Group (ALB → EC2)
 
 ```powershell
 aws elbv2 describe-target-health `
-  --target-group-arn arn:aws:elasticloadbalancing:eu-north-1:989346119941:targetgroup/dns-failover-tg/7ccfc69ab711aca9
+  --target-group-arn arn:aws:elasticloadbalancing:eu-north-1:989346119941:targetgroup/dns-failover-tg/19369bdc70db9ad1
 # Очікується: 2 таргети у стані "healthy"
 ```
 
@@ -171,21 +180,21 @@ health check фіксує 3 невдачі (~90s) → DNS перемикаєть
 
 ```powershell
 # Крок 1: зупинити обидва інстанси
-aws ec2 stop-instances --instance-ids i-0ca19cf2367d1cc2a i-0a6d8ed438f5c419a
+aws ec2 stop-instances --instance-ids i-0cf7255a64a2c3856 i-03a58aab033f48dc2
 
 # Крок 2: спостерігати (через ~1-3 хв статус стане Unhealthy)
-aws route53 get-health-check-status --health-check-id baf98e4e-2fbc-4b22-a92d-c554c94759ef
+aws route53 get-health-check-status --health-check-id 096755f8-691c-4c0f-b5d6-d850c0a049ba
 
 # Крок 3: DNS тепер віддає S3 website endpoint:
-nslookup cmd521-failover-lab.test ns-412.awsdns-51.com
-# → Addresses: IP від cmd521-failover-lab.test.s3-website-eu-west-1.amazonaws.com
+nslookup hwbarabash1.pp.ua ns-131.awsdns-16.com
+# → Addresses: IP від hwbarabash1.pp.ua.s3-website-eu-west-1.amazonaws.com
 
 # Крок 4: відновити — і через ~1-2 хв failback на ALB (автоматично)
-aws ec2 start-instances --instance-ids i-0ca19cf2367d1cc2a i-0a6d8ed438f5c419a
+aws ec2 start-instances --instance-ids i-0cf7255a64a2c3856 i-03a58aab033f48dc2
 
 # Перевірка failback:
-nslookup cmd521-failover-lab.test ns-412.awsdns-51.com   # знову 2 IP ALB
-curl.exe http://dns-failover-alb-671914199.eu-north-1.elb.amazonaws.com   # «Primary site»
+nslookup hwbarabash1.pp.ua ns-131.awsdns-16.com   # знову 2 IP ALB
+curl.exe http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com   # «Primary site»
 ```
 
 **Тривалість перемикання**: `failure_threshold(3) × request_interval(30s) ≈ 90s`
@@ -220,7 +229,7 @@ terraform -chdir=environments\dev destroy -auto-approve
 
 | Симптом | Причина / рішення |
 |---|---|
-| `nslookup` → `Non-existent domain` без сервера | Додайте NS-сервер зони: `nslookup <домен> ns-412.awsdns-51.com` |
+| `nslookup` → `Non-existent domain` без сервера | Додайте NS-сервер зони: `nslookup <домен> ns-131.awsdns-16.com` |
 | Health check Unhealthy, але ALB працює | Перевірте Target Group: `describe-target-health` — має бути `healthy` |
 | DNS не перемикається | Дочекайтесь ~90s (3×30s) + TTL; перевірте `get-health-check-status` |
 | `DomainNameDuplicate` при create | `domain_name` = ім'я S3-бакета, має бути унікальним у світі |
