@@ -143,3 +143,12 @@ resource "aws_instance" "web" {
     Name = "${var.name_prefix}-web-${count.index + 1}"
   })
 }
+
+# --- Прив'язка EC2 до Target Group ---
+resource "aws_lb_target_group_attachment" "web" {
+  count = length(aws_instance.web)
+
+  target_group_arn = aws_lb_target_group.this.arn
+  target_id        = aws_instance.web[count.index].id
+  port             = 80
+}
