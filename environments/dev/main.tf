@@ -42,8 +42,9 @@ locals {
   # Hosted zone ID для S3 WEBSITE endpoints (див. AWS General Reference:
   # "Amazon S3 website endpoints" → колонка Hosted zone ID)
   s3_website_hosted_zone_ids = {
-    "eu-central-1" = "Z21DNDUVLTQW6Q"
-    "eu-west-1"    = "Z1BKCTXD74EZPE"
+    "eu-north-1"    = "Z3BAZG2TWCNX0D"
+    "eu-central-1"  = "Z21DNDUVLTQW6Q"
+    "eu-west-1"     = "Z1BKCTXD74EZPE"
   }
 
   # Обираємо 2 перші AZ регіону primary

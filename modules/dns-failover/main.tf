@@ -49,7 +49,7 @@ resource "aws_route53_record" "primary" {
   alias {
     name                   = var.primary_dns_name
     zone_id                = var.primary_zone_id
-    evaluate_target_health = false # health check вже прив'язаний явно
+    evaluate_target_health = true # ALB: оцінюємо здоров'я target'ів для швидкого failover
   }
 }
 
