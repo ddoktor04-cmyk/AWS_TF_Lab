@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-# Встановлення nginx та публікація demo-сторінки PRIMARY
+# Встановлення nginx та публікація demo-сторінки
 yum install -y nginx
 
 cat > /usr/share/nginx/html/index.html <<'HTML'
@@ -58,12 +58,12 @@ cat > /usr/share/nginx/html/index.html <<'HTML'
 </head>
 <body>
   <div class="card">
-    <div class="badge">&#9679; Primary</div>
+    <div class="badge">&#9679; ${role}</div>
     <h1>${page_title}</h1>
     <p>
       Ви бачите цю сторінку, бо Route53 DNS failover
-      скерував запит на <strong>ALB в eu-central-1</strong>.
-      Це основний (PRIMARY) endpoint.
+      скерував запит на <strong>${instance_label}</strong> (eu-north-1).
+      Це ${role_desc} endpoint.
     </p>
     <div class="meta">
       instance: <span>${instance_label}</span><br>

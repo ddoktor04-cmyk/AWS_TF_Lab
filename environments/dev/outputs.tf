@@ -4,13 +4,18 @@ output "app_url" {
 }
 
 output "primary_url" {
-  description = "URL напряму до PRIMARY (ALB)"
-  value       = "http://${module.primary.alb_dns_name}"
+  description = "URL напряму до PRIMARY (EIP web-1)"
+  value       = "http://${module.primary.eip_public_ips[0]}"
 }
 
 output "secondary_url" {
-  description = "URL напряму до SECONDARY (S3 website)"
-  value       = "http://${module.secondary_site.website_endpoint}"
+  description = "URL напряму до SECONDARY (EIP web-2)"
+  value       = "http://${module.primary.eip_public_ips[1]}"
+}
+
+output "eip_public_ips" {
+  description = "Elastic IP інстансів: [0] = web-1 (PRIMARY), [1] = web-2 (SECONDARY)"
+  value       = module.primary.eip_public_ips
 }
 
 output "hosted_zone_id" {
@@ -31,9 +36,4 @@ output "health_check_id" {
 output "instance_ids" {
   description = "ID EC2 інстансів (для симуляції збою: aws ec2 stop-instances)"
   value       = module.primary.instance_ids
-}
-
-output "s3_bucket_name" {
-  description = "Ім'я S3-бакета резервного сайту"
-  value       = module.secondary_site.bucket_name
 }

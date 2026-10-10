@@ -1,8 +1,8 @@
 # =============================================================================
 # DNS Failover lab (dev):
-#   PRIMARY   = ALB + 2 EC2 (nginx) у eu-north-1
-#   SECONDARY = S3 static website у eu-west-1
-#   Моніторинг = Route53 HTTP health check за ALB
+#   PRIMARY   = EC2 web-1 (EIP) у eu-north-1
+#   SECONDARY = EC2 web-2 (EIP) у eu-north-1
+#   Моніторинг = Route53 HTTP health check за IP web-1
 # =============================================================================
 
 # --- Primary provider (eu-north-1) — дефолтний для цього модуля ---
@@ -74,45 +74,29 @@ data "aws_subnet" "by_az" {
 # Modules
 # =============================================================================
 
-# PRIMARY: ALB + 2 EC2 у різних AZ
+# PRIMARY: 2 EC2 у різних AZ + Elastic IP
 module "primary" {
   source = "../../modules/compute"
 
-  name_prefix       = "dns-failover"
-  vpc_id            = data.aws_vpc.default.id
-  subnet_ids        = [for az in local.azs : data.aws_subnet.by_az[az].id]
-  instance_type     = var.instance_type
-  health_check_path = "/"
-  page_title        = "Primary site"
-  tags              = local.common_tags
-}
-
-# SECONDARY: S3 static website (fallback)
-module "secondary_site" {
-  source = "../../modules/s3-website"
-
-  providers = {
-    aws = aws.secondary
-  }
-
-  bucket_name    = var.domain_name
-  index_document = "index.html"
-  error_document = "error.html"
-  tags           = local.common_tags
+  name_prefix   = "dns-failover"
+  vpc_id        = data.aws_vpc.default.id
+  subnet_ids    = [for az in local.azs : data.aws_subnet.by_az[az].id]
+  instance_type = var.instance_type
+  page_title    = "Primary site"
+  tags          = local.common_tags
 }
 
 # DNS: hosted zone + health check + failover records
 module "dns_failover" {
   source = "../../modules/dns-failover"
 
-  zone_name          = var.domain_name
-  primary_fqdn       = module.primary.alb_dns_name
-  primary_dns_name   = module.primary.alb_dns_name
-  secondary_dns_name = module.secondary_site.website_endpoint
-  health_check_type  = "HTTP"
-  health_check_port  = 80
-  health_check_path  = "/"
-  failure_threshold  = 3
-  request_interval   = 30
-  tags               = local.common_tags
+  zone_name         = var.domain_name
+  primary_ip        = module.primary.eip_public_ips[0]
+  secondary_ip      = module.primary.eip_public_ips[1]
+  health_check_type = "HTTP"
+  health_check_port = 80
+  health_check_path = "/"
+  failure_threshold = 3
+  request_interval  = 30
+  tags              = local.common_tags
 }

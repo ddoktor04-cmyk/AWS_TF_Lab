@@ -3,18 +3,13 @@ variable "zone_name" {
   type        = string
 }
 
-variable "primary_fqdn" {
-  description = "FQDN PRIMARY endpoint для health check (DNS-ім'я ALB)"
+variable "primary_ip" {
+  description = "IP PRIMARY endpoint (EIP web-1) — значення A-запису та ціль health check"
   type        = string
 }
 
-variable "primary_dns_name" {
-  description = "DNS-ім'я PRIMARY target (ALB dns_name) — резолвиться в IP для A-запису"
-  type        = string
-}
-
-variable "secondary_dns_name" {
-  description = "DNS-ім'я SECONDARY target (S3 website endpoint) — резолвиться в IP для A-запису"
+variable "secondary_ip" {
+  description = "IP SECONDARY endpoint (EIP web-2) — значення A-запису"
   type        = string
 }
 

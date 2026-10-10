@@ -1,5 +1,5 @@
 variable "name_prefix" {
-  description = "Префікс для імен ресурсів (ALB, SG, TG, EC2)"
+  description = "Префікс для імен ресурсів (SG, EC2, EIP)"
   type        = string
 }
 
@@ -9,7 +9,7 @@ variable "vpc_id" {
 }
 
 variable "subnet_ids" {
-  description = "Список subnet ID (мінімум 2, різні AZ) для ALB та EC2"
+  description = "Список subnet ID (мінімум 2, різні AZ) для EC2"
   type        = list(string)
 
   validation {
@@ -24,14 +24,8 @@ variable "instance_type" {
   default     = "t3.micro"
 }
 
-variable "health_check_path" {
-  description = "HTTP-шлях для health check ALB"
-  type        = string
-  default     = "/"
-}
-
 variable "page_title" {
-  description = "Заголовок сторінки, яку віддає nginx (PRIMARY)"
+  description = "Заголовок сторінки PRIMARY (web-1)"
   type        = string
   default     = "Primary site"
 }
