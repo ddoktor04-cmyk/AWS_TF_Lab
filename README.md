@@ -7,7 +7,7 @@ Terraform-реалізація механізму **DNS failover** за допо
 - **Моніторинг**: Route53 **HTTP health check** за DNS-ім'ям ALB (30s interval, 3 failures)
 
 Коли ALB/EC2 стають недоступними (ALB віддає 5xx без healthy targets) → health check
-падає → Route53 автоматично перемикає A-alias на резервний S3 website. Після
+падає → Route53 автоматично перемикає A-запис на резервний S3 website. Після
 відновлення — failback на primary.
 
 ## Архітектура
@@ -27,8 +27,19 @@ Terraform-реалізація механізму **DNS failover** за допо
           ▼                                       ▼
   ALB (eu-north-1)                        S3 website (eu-west-1)
   ├── EC2 web-1 (eu-north-1a) nginx       index.html → «Fallback»
-  └── EC2 web-2 (eu-north-1b) nginx       error.html → 404
+   └── EC2 web-2 (eu-north-1b) nginx       error.html → 404
 ```
+
+> **Чому звичайні A-записи, а не alias?** Експериментально перевірено: alias-записи
+> (з `evaluate_target_health` як `true`, так і `false`, з health check і без) **не
+> перемикалися** навіть коли health check був 16/16 Failure 12+ хвилин, а alias-SECONDARY
+> взагалі блокував failover (правило «both unhealthy → primary»). Звичайний non-alias
+> A-запис на PRIMARY з `health_check_id` + non-alias SECONDARY без health check
+> перемикається коректно: stop EC2 → ~90s → S3, start EC2 → ~90s → ALB.
+> IP ALB та S3 endpoint резолвляться через провайдер `hashicorp/dns`
+> (`data "dns_a_record_set"`), TTL записів — 60s. Для SECONDARY `records` зафіксовано
+> через `ignore_changes`, бо публічний DNS S3 website endpoint віддає різний підмножину
+> IP-пула щозапиту (perpetual diff).
 
 ## Активні ресурси (поточне розгортання)
 
@@ -219,7 +230,7 @@ curl.exe http://dns-failover-alb-655472536.eu-north-1.elb.amazonaws.com   # «Pr
 ```
 
 **Тривалість перемикання**: `failure_threshold(3) × request_interval(30s) ≈ 90s`
-плюс TTL DNS-кешу (alias ≈ 60s). Реально — 1-3 хвилини.
+плюс TTL DNS-запису (60s). Реально — 1-3 хвилини.
 
 ### 8. Очищення
 

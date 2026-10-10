@@ -7,6 +7,9 @@ terraform {
     aws = {
       source = "hashicorp/aws"
     }
+    dns = {
+      source = "hashicorp/dns"
+    }
   }
 }
 
@@ -34,39 +37,48 @@ resource "aws_route53_health_check" "primary" {
   })
 }
 
-# --- PRIMARY alias record → ALB ---
+# --- IP ALB (alias A-запис не перемикається failover на практиці, тому
+# резолвимо IP напряму і робимо звичайний A-запис з health check) ---
+data "dns_a_record_set" "primary" {
+  host = var.primary_dns_name
+}
+
+# --- PRIMARY A-запис → IP ALB + health check ---
 resource "aws_route53_record" "primary" {
   zone_id         = aws_route53_zone.this.zone_id
   name            = var.zone_name
   type            = "A"
+  ttl             = 60
+  records         = data.dns_a_record_set.primary.addrs
   set_identifier  = "primary"
   health_check_id = aws_route53_health_check.primary.id
 
   failover_routing_policy {
     type = "PRIMARY"
   }
-
-  alias {
-    name                   = var.primary_dns_name
-    zone_id                = var.primary_zone_id
-    evaluate_target_health = true # ALB: оцінюємо здоров'я target'ів для швидкого failover
-  }
 }
 
-# --- SECONDARY alias record → S3 website endpoint ---
+# --- IP S3 website endpoint (alias-SECONDARY блокував failover на практиці) ---
+data "dns_a_record_set" "secondary" {
+  host = var.secondary_dns_name
+}
+
+# --- SECONDARY A-запис → IP S3 website (без health check = завжди healthy) ---
 resource "aws_route53_record" "secondary" {
   zone_id        = aws_route53_zone.this.zone_id
   name           = var.zone_name
   type           = "A"
+  ttl            = 60
+  records        = data.dns_a_record_set.secondary.addrs
   set_identifier = "secondary"
 
   failover_routing_policy {
     type = "SECONDARY"
   }
 
-  alias {
-    name                   = var.secondary_dns_name
-    zone_id                = var.secondary_zone_id
-    evaluate_target_health = false
+  # Публічний DNS S3 website endpoint повертає різний підмножину IP-пула щозапиту,
+  # тому фіксуємо адреси, отримані при apply (інакше — perpetual diff)
+  lifecycle {
+    ignore_changes = [records]
   }
 }

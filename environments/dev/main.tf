@@ -1,11 +1,11 @@
 # =============================================================================
 # DNS Failover lab (dev):
-#   PRIMARY   = ALB + 2 EC2 (nginx) у eu-central-1
+#   PRIMARY   = ALB + 2 EC2 (nginx) у eu-north-1
 #   SECONDARY = S3 static website у eu-west-1
 #   Моніторинг = Route53 HTTP health check за ALB
 # =============================================================================
 
-# --- Primary provider (eu-central-1) — дефолтний для цього модуля ---
+# --- Primary provider (eu-north-1) — дефолтний для цього модуля ---
 provider "aws" {
   region     = var.aws_region_primary
   access_key = var.aws_access_key
@@ -37,14 +37,6 @@ locals {
     Environment = var.environment
     Project     = var.project_name
     ManagedBy   = "terraform"
-  }
-
-  # Hosted zone ID для S3 WEBSITE endpoints (див. AWS General Reference:
-  # "Amazon S3 website endpoints" → колонка Hosted zone ID)
-  s3_website_hosted_zone_ids = {
-    "eu-north-1"    = "Z3BAZG2TWCNX0D"
-    "eu-central-1"  = "Z21DNDUVLTQW6Q"
-    "eu-west-1"     = "Z1BKCTXD74EZPE"
   }
 
   # Обираємо 2 перші AZ регіону primary
@@ -116,9 +108,7 @@ module "dns_failover" {
   zone_name          = var.domain_name
   primary_fqdn       = module.primary.alb_dns_name
   primary_dns_name   = module.primary.alb_dns_name
-  primary_zone_id    = module.primary.alb_zone_id
   secondary_dns_name = module.secondary_site.website_endpoint
-  secondary_zone_id  = local.s3_website_hosted_zone_ids[var.aws_region_secondary]
   health_check_type  = "HTTP"
   health_check_port  = 80
   health_check_path  = "/"

@@ -9,22 +9,12 @@ variable "primary_fqdn" {
 }
 
 variable "primary_dns_name" {
-  description = "DNS-ім'я PRIMARY target (ALB dns_name)"
-  type        = string
-}
-
-variable "primary_zone_id" {
-  description = "Hosted zone ID PRIMARY target (ALB zone_id)"
+  description = "DNS-ім'я PRIMARY target (ALB dns_name) — резолвиться в IP для A-запису"
   type        = string
 }
 
 variable "secondary_dns_name" {
-  description = "DNS-ім'я SECONDARY target (S3 website endpoint)"
-  type        = string
-}
-
-variable "secondary_zone_id" {
-  description = "Hosted zone ID SECONDARY target (S3 website hosted zone ID для регіону)"
+  description = "DNS-ім'я SECONDARY target (S3 website endpoint) — резолвиться в IP для A-запису"
   type        = string
 }
 
