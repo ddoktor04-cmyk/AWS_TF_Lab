@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="240" height="240">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#9a3412"/>
+    </linearGradient>
+  </defs>
+  <circle cx="120" cy="120" r="112" fill="url(#bg)"/>
+  <circle cx="120" cy="120" r="112" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="4"/>
+  <path d="M120 48 L186 168 H54 Z" fill="none" stroke="#fff7ed" stroke-width="12" stroke-linejoin="round"/>
+  <path d="M120 92 V138" stroke="#fff7ed" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="120" cy="156" r="8" fill="#fff7ed"/>
+  <text x="120" y="206" text-anchor="middle" font-family="Segoe UI, system-ui, sans-serif" font-size="20" font-weight="700" fill="#fff7ed">FAILOVER</text>
+</svg>

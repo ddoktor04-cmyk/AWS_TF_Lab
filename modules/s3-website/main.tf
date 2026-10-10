@@ -82,3 +82,13 @@ resource "aws_s3_object" "error" {
 
   tags = var.tags
 }
+
+resource "aws_s3_object" "logo" {
+  bucket       = aws_s3_bucket.this.id
+  key          = "logo.svg"
+  source       = "${path.module}/files/logo.svg"
+  etag         = filemd5("${path.module}/files/logo.svg")
+  content_type = "image/svg+xml"
+
+  tags = var.tags
+}
